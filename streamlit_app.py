@@ -1,13 +1,10 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from PIL import Image
 
 # Configure page
 st.set_page_config(
-    page_title="Streamlit Demo App",
+    page_title="SmartKPI Dashboard",
     page_icon="📊",
     layout="wide"
 )
@@ -29,176 +26,142 @@ st.markdown("""
 st.sidebar.title("Navigation")
 app_mode = st.sidebar.selectbox(
     "Choose the app mode",
-    ["Home", "Data Visualization", "Interactive Demo", "About"]
+    ["Home", "KPI Dashboard", "Data Analysis", "About"]
 )
 
 # Home Page
 if app_mode == "Home":
-    st.markdown('<p class="big-font">Welcome to Streamlit Demo App</p>', unsafe_allow_html=True)
+    st.markdown('<p class="big-font">Welcome to SmartKPI Dashboard</p>', unsafe_allow_html=True)
     
     st.write("""
-    This is a demonstration of Streamlit's capabilities including:
-    - Interactive widgets
-    - Data visualization
-    - Layout components
-    - File uploading
+    This is a SmartKPI dashboard application built with Streamlit.
+    
+    ### Features:
+    - Real-time KPI monitoring
+    - Interactive data analysis
+    - Customizable metrics
+    - Responsive design
     """)
     
-    image = Image.open('https://streamlit.io/images/brand/streamlit-logo-secondary-colormark-darktext.png')
-    st.image(image, caption='Streamlit Logo', width=300)
-    
-    st.info("👈 Select a demo from the sidebar to get started!")
+    st.info("👈 Select a section from the sidebar to get started!")
 
-# Data Visualization Page
-elif app_mode == "Data Visualization":
-    st.markdown('<p class="big-font">Data Visualization Dashboard</p>', unsafe_allow_html=True)
+# KPI Dashboard Page
+elif app_mode == "KPI Dashboard":
+    st.markdown('<p class="big-font">KPI Dashboard</p>', unsafe_allow_html=True)
     
     # Generate sample data
     @st.cache_data
-    def load_data():
+    def load_kpi_data():
         data = pd.DataFrame({
-            'Date': pd.date_range('2023-01-01', periods=100),
-            'Sales': np.random.randint(100, 500, 100),
-            'Profit': np.random.randint(10, 50, 100),
-            'Region': np.random.choice(['North', 'South', 'East', 'West'], 100)
+            'Date': pd.date_range('2023-01-01', periods=50),
+            'Revenue': np.random.randint(1000, 5000, 50),
+            'Customers': np.random.randint(50, 200, 50),
+            'Conversion': np.random.uniform(1.5, 5.0, 50),
+            'Satisfaction': np.random.uniform(3.0, 5.0, 50)
         })
         return data
     
-    df = load_data()
+    df = load_kpi_data()
     
     # Filters
     st.sidebar.header("Filters")
-    region_filter = st.sidebar.multiselect("Select Region", df['Region'].unique(), df['Region'].unique())
-    date_range = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
+    date_range = st.sidebar.date_input("Select Date Range", 
+                                      [df['Date'].min(), df['Date'].max()])
     
     # Apply filters
     filtered_df = df[
-        (df['Region'].isin(region_filter)) & 
         (df['Date'] >= pd.to_datetime(date_range[0])) & 
         (df['Date'] <= pd.to_datetime(date_range[1]))
     ]
     
     # Metrics
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Sales", f"${filtered_df['Sales'].sum():,}")
-    col2.metric("Average Profit", f"${filtered_df['Profit'].mean():.2f}")
-    col3.metric("Transactions", len(filtered_df))
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Revenue", f"${filtered_df['Revenue'].sum():,}")
+    col2.metric("Avg Customers", f"{filtered_df['Customers'].mean():.0f}")
+    col3.metric("Avg Conversion", f"{filtered_df['Conversion'].mean():.2f}%")
+    col4.metric("Satisfaction", f"{filtered_df['Satisfaction'].mean():.2f}/5")
     
-    # Charts
-    st.subheader("Sales Over Time")
-    fig1, ax1 = plt.subplots(figsize=(10, 4))
-    ax1.plot(filtered_df['Date'], filtered_df['Sales'], marker='o', linewidth=2)
-    ax1.set_xlabel('Date')
-    ax1.set_ylabel('Sales')
-    st.pyplot(fig1)
+    # KPI Charts using Streamlit's built-in charts
+    st.subheader("Revenue Trend")
+    st.line_chart(filtered_df.set_index('Date')['Revenue'])
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("Sales by Region")
-        fig2, ax2 = plt.subplots()
-        region_sales = filtered_df.groupby('Region')['Sales'].sum()
-        ax2.pie(region_sales, labels=region_sales.index, autopct='%1.1f%%')
-        st.pyplot(fig2)
+        st.subheader("Customers Over Time")
+        st.bar_chart(filtered_df.set_index('Date')['Customers'])
     
     with col2:
-        st.subheader("Profit Distribution")
-        fig3, ax3 = plt.subplots()
-        ax3.hist(filtered_df['Profit'], bins=20, color='skyblue', edgecolor='black')
-        ax3.set_xlabel('Profit')
-        ax3.set_ylabel('Frequency')
-        st.pyplot(fig3)
+        st.subheader("Conversion Rate")
+        st.area_chart(filtered_df.set_index('Date')['Conversion'])
     
     # Data table
-    st.subheader("Data Table")
+    st.subheader("KPI Data")
     st.dataframe(filtered_df.style.highlight_max(axis=0))
 
-# Interactive Demo Page
-elif app_mode == "Interactive Demo":
-    st.markdown('<p class="big-font">Interactive Widgets Demo</p>', unsafe_allow_html=True)
+# Data Analysis Page
+elif app_mode == "Data Analysis":
+    st.markdown('<p class="big-font">Data Analysis</p>', unsafe_allow_html=True)
     
     # Text inputs
-    st.subheader("Text Inputs")
-    name = st.text_input("Enter your name", "John Doe")
-    age = st.slider("Select your age", 18, 100, 25)
-    st.write(f"Hello {name}, you are {age} years old!")
+    st.subheader("KPI Configuration")
+    kpi_name = st.text_input("KPI Name", "Customer Acquisition Cost")
+    target_value = st.number_input("Target Value", value=50.0)
+    current_value = st.number_input("Current Value", value=45.6)
+    
+    # Calculate variance
+    variance = current_value - target_value
+    variance_pct = (variance / target_value) * 100 if target_value != 0 else 0
+    
+    st.write(f"**{kpi_name}**")
+    st.metric("Variance", f"{variance:.2f}", f"{variance_pct:.2f}%")
     
     # File uploader
-    st.subheader("File Uploader")
+    st.subheader("Upload KPI Data")
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.write("Uploaded Data:")
         st.dataframe(df.head())
+        
+        # If numeric columns exist, show basic stats
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 0:
+            st.subheader("Data Summary")
+            st.write(df[numeric_cols].describe())
     
-    # Interactive plot
-    st.subheader("Interactive Plot")
-    plot_type = st.selectbox("Select plot type", ["Line", "Bar", "Scatter"])
-    x_points = st.slider("Number of data points", 10, 100, 50)
+    # Interactive controls
+    st.subheader("Simulation Controls")
+    simulation_type = st.selectbox("Select Analysis Type", 
+                                  ["Trend Analysis", "Variance Report", "Forecast"])
+    data_points = st.slider("Number of Data Points", 10, 100, 30)
     
-    # Generate data
-    x = np.linspace(0, 10, x_points)
-    y = np.sin(x) * np.random.rand(x_points)
+    # Generate sample data for visualization
+    x = np.arange(data_points)
+    y = np.cumsum(np.random.randn(data_points)) + 100
     
-    # Create plot
-    fig, ax = plt.subplots()
-    if plot_type == "Line":
-        ax.plot(x, y, marker='o')
-    elif plot_type == "Bar":
-        ax.bar(x, y)
-    else:
-        ax.scatter(x, y)
+    # Create chart data
+    chart_data = pd.DataFrame({
+        'x': x,
+        'y': y
+    })
     
-    ax.set_xlabel("X Values")
-    ax.set_ylabel("Y Values")
-    st.pyplot(fig)
-    
-    # Checkbox and radio buttons
-    st.subheader("Additional Options")
-    if st.checkbox("Show detailed stats"):
-        st.write(f"Mean: {np.mean(y):.2f}")
-        st.write(f"Standard Deviation: {np.std(y):.2f}")
-        st.write(f"Min: {np.min(y):.2f}")
-        st.write(f"Max: {np.max(y):.2f}")
-    
-    option = st.radio("Choose a color", ["Red", "Green", "Blue"])
-    st.write(f"You selected: {option}")
+    st.subheader(f"{simulation_type} Results")
+    st.line_chart(chart_data.set_index('x'))
 
 # About Page
 else:
-    st.markdown('<p class="big-font">About This App</p>', unsafe_allow_html=True)
+    st.markdown('<p class="big-font">About SmartKPI</p>', unsafe_allow_html=True)
     
     st.write("""
-    This demo app showcases various Streamlit features:
+    ### SmartKPI Dashboard
     
-    ### Features Demonstrated:
-    - Multi-page navigation
-    - Interactive widgets (sliders, checkboxes, file uploader)
-    - Data visualization with Matplotlib
-    - Responsive layout with columns
-    - Caching for performance
-    - Custom styling with CSS
-    - Data filtering and metrics
+    This application provides a comprehensive dashboard for monitoring 
+    key performance indicators with real-time data visualization.
     
-    ### How to Use:
-    1. Navigate between sections using the sidebar
-    2. Interact with widgets to see dynamic updates
-    3. Upload your own CSV files in the Interactive Demo
-    4. Apply filters in the Data Visualization section
-    
-    ### Requirements:
-    ```
-    streamlit
-    pandas
-    numpy
-    matplotlib
-    seaborn
-    pillow
-    ```
-    """)
-
-    st.info("Built with ❤️ using [Streamlit](https://streamlit.io)")
-
-# Footer
-st.markdown("---")
-st.caption("Streamlit Demo App • Created with Streamlit")
+    ### Key Features:
+    - Interactive KPI monitoring
+    - Customizable dashboards
+    - Data filtering and analysis
+    - Export capabilities
+    - Responsive design for all devices*
